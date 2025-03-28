@@ -11,13 +11,21 @@ def package_application():
     arch = platform.machine().lower()
 
     output_name = f'gridworld-mdp-{system}-{arch}'
-
+    python_dir = os.path.dirname(sys.executable)
+    # Construct the path to pyinstaller.exe within that Python's Scripts dir
+    pyinstaller_path = os.path.join(python_dir, 'Scripts', 'pyinstaller.exe')
+    
+    # Check if it exists before using it
+    if not os.path.exists(pyinstaller_path):
+        # Fallback or raise a more informative error
+        pyinstaller_path = 'pyinstaller' # Try PATH as a fallback
+        print(f"Warning: Could not find pyinstaller at {os.path.join(python_dir, 'Scripts')}, attempting to use PATH.")
     pyinstaller_cmd = [
-        'pyinstaller',
+        pyinstaller_path,
         '--onefile',           
         '--windowed',          
         '--name', output_name,
-        'src/gridworld_mdp.py'
+        'src/mdp_rl_gridworld.py'
     ]
 
 
