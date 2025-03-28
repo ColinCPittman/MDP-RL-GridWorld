@@ -17,7 +17,6 @@ def package_application():
     pyinstaller_path = os.path.join(python_dir, 'Scripts', 'pyinstaller.exe')   
     if not os.path.exists(pyinstaller_path):
         pyinstaller_path = 'pyinstaller' 
-        print(f"Warning: Could not find pyinstaller at {os.path.join(python_dir, 'Scripts')}, attempting to use PATH.")
         
     pyinstaller_cmd = [
         pyinstaller_path,
