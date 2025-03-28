@@ -12,14 +12,13 @@ def package_application():
 
     output_name = f'gridworld-mdp-{system}-{arch}'
     python_dir = os.path.dirname(sys.executable)
-    # Construct the path to pyinstaller.exe within that Python's Scripts dir
-    pyinstaller_path = os.path.join(python_dir, 'Scripts', 'pyinstaller.exe')
-    
-    # Check if it exists before using it
+
+    # I had some initial issues with pyinstaller, I added this because I thought it would force it to find the correct path more seamlessly. Leaving it in since it may help others
+    pyinstaller_path = os.path.join(python_dir, 'Scripts', 'pyinstaller.exe')   
     if not os.path.exists(pyinstaller_path):
-        # Fallback or raise a more informative error
-        pyinstaller_path = 'pyinstaller' # Try PATH as a fallback
+        pyinstaller_path = 'pyinstaller' 
         print(f"Warning: Could not find pyinstaller at {os.path.join(python_dir, 'Scripts')}, attempting to use PATH.")
+        
     pyinstaller_cmd = [
         pyinstaller_path,
         '--onefile',           
