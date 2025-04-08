@@ -3,7 +3,7 @@
 
 # # Imports and Gloabls
 
-# In[1]:
+# In[34]:
 
 
 import tkinter as tk
@@ -31,11 +31,12 @@ r_value_entry = None
 epsilon_entry = None
 discount_entry = None
 speed_slider = None
+decay_factor_entry = None
 
 
 # # MDP Functions
 
-# In[2]:
+# In[35]:
 
 
 def get_mdp_model(): #this could be decomposed further since I have a section for MDP funtions, for now I will keep it to make the value iteration function easier to follow in code
@@ -128,12 +129,12 @@ def get_mdp_model(): #this could be decomposed further since I have a section fo
 
 # # GUI Functions
 
-# In[3]:
+# In[36]:
 
 
 def setup_gui():
     global root, grid_frame, control_panel_frame, value_iteration_button, q_learning_button, policy_iteration_button, epsilon_greedy_q_button, reset_button
-    global output_label, x_value_entry, r_value_entry, epsilon_entry, discount_entry, speed_slider, display_button, a_value_entry
+    global output_label, x_value_entry, r_value_entry, epsilon_entry, discount_entry, speed_slider, display_button, a_value_entry, decay_factor_entry
     root = tk.Tk()
     root.title("Gridworld Display")
 
@@ -184,6 +185,12 @@ def setup_gui():
     a_value_entry.grid(row=1, column=5, padx=5, pady=5, sticky="w")
     a_value_entry.insert(0, "0.5") # default alpha value
 
+    decay_factor_label = tk.Label(control_panel_frame, text="Alpha Decay Factor:")
+    decay_factor_label.grid(row=1, column=6, padx=5, pady=5, sticky="e")
+    decay_factor_entry = tk.Entry(control_panel_frame, width=5)
+    decay_factor_entry.grid(row=1, column=7, padx=5, pady=5, sticky="w")
+    decay_factor_entry.insert(0, "0.1") # default decay factor
+
     epsilon_label = tk.Label(control_panel_frame, text="Epsilon:")
     epsilon_label.grid(row=2, column=0, padx=5, pady=5, sticky="e")
     epsilon_entry = tk.Entry(control_panel_frame, width=5)
@@ -210,7 +217,7 @@ def setup_gui():
     root.grid_columnconfigure(0, weight=1)
 
 
-# In[4]:
+# In[37]:
 
 
 def initialize_q_grid():
@@ -261,7 +268,7 @@ def initialize_q_grid():
         
 
 
-# In[5]:
+# In[38]:
 
 
 def initialize_v_grid():
@@ -274,7 +281,7 @@ def initialize_v_grid():
     v_display_grid(grid_frame, initial_v_tuples)
 
 
-# In[6]:
+# In[39]:
 
 
 def initialize_grid():
@@ -285,7 +292,7 @@ def initialize_grid():
         initialize_q_grid()
 
 
-# In[7]:
+# In[40]:
 
 
 def display_grid(grid_frame, tuples_list, type = None):
@@ -296,7 +303,7 @@ def display_grid(grid_frame, tuples_list, type = None):
         q_display_grid(grid_frame, tuples_list)
 
 
-# In[8]:
+# In[41]:
 
 
 def toggle_display_mode():
@@ -320,7 +327,7 @@ def toggle_display_mode():
 # - Takes in a list of tuples (v_score, direction), for each cell.
 # - Tuples information is populated into cells starting from the top left and ending with the bottom right.
 
-# In[9]:
+# In[42]:
 
 
 def v_display_grid(grid_frame, tuples_list, type=None):
@@ -376,7 +383,7 @@ def v_display_grid(grid_frame, tuples_list, type=None):
 #     - The quadtuples populate the up, right, down, and left directions respectively when read left-to-right
 # - The cells of the board are populated beginning with the top-left cell and ending with the bottom-right cell. 
 
-# In[10]:
+# In[43]:
 
 
 def q_display_grid(grid_frame, quadtuple_list, q_learn = False):
@@ -480,7 +487,7 @@ def q_display_grid(grid_frame, quadtuple_list, q_learn = False):
 
 # # Part 1 - Value Iteration
 
-# In[11]:
+# In[44]:
 
 
 def value_iteration():
@@ -575,7 +582,7 @@ def value_iteration():
 
 # # Part 2: Policy Iteration
 
-# In[12]:
+# In[45]:
 
 
 def policy_evaluation(policy, discount, epsilon, V):
@@ -689,7 +696,7 @@ def policy_iteration():
 
 # # Part 3: Q-Learning
 
-# In[13]:
+# In[46]:
 
 
 def q_to_quadtuples(Q):
@@ -736,7 +743,7 @@ def q_learning():
                 N_sa[(0, 3)][a] = 0
             if (1, 3) in N_sa:
                 N_sa[(1, 3)][a] = 0
-    current_state = (0, 0)
+    current_state = (2, 0)
     move_count = 0
     max_moves = 40
 
@@ -791,7 +798,7 @@ def q_learning():
             max_next = max(Q[s_next].values()) if s_next in Q else 0.0
             reward_plus_discounted_best_future_Q = r + discount * max_next
         
-        N_sa[current_state][action] += 1
+        N_sa[current_state][action] += float(decay_factor_entry.get())
 
         # decaying alpha based on visit count, figure 23.8 shows alpha being a function of a frequencies of state action pairs, am dividing it here because I assume this is to encourage novel exploration. Ask the professor about this
         alpha = initial_alpha / (1 + N_sa[current_state][action])
@@ -823,7 +830,7 @@ def q_learning():
             
             grid_frame.update()
             time.sleep(0.5)
-            current_state = (0, 0)
+            current_state = (2, 0)
             update_here_marker()
             grid_frame.update()
 
@@ -833,7 +840,7 @@ def q_learning():
 
 # # Part 4: Greedy
 
-# In[14]:
+# In[47]:
 
 
 def epsilon_greedy(decaying = False):
@@ -867,9 +874,9 @@ def epsilon_greedy(decaying = False):
         if (1, 3) in N_sa:
             N_sa[(1, 3)][a] = 0
     
-    current_state = (0, 0)
+    current_state = (2, 0)
     move_count = 0
-    max_moves = 100 
+    max_moves = 300 
     
     # to ensure the Q-grid is displayed with the "here" marker
     quad_list = q_to_quadtuples(Q)
@@ -913,7 +920,7 @@ def epsilon_greedy(decaying = False):
             max_next = max(Q[s_next].values()) if s_next in Q else 0.0
             reward_plus_discounted_best_future_Q = r + discount * max_next
         
-        N_sa[current_state][action] += 1
+        N_sa[current_state][action] += float(decay_factor_entry.get())
         
         # decaying alpha based on visit count, may need to update depending on how conversation with professor goes
         alpha = initial_alpha / (1 + N_sa[current_state][action])
@@ -928,11 +935,11 @@ def epsilon_greedy(decaying = False):
         current_state = s_next
         update_here_marker()
         grid_frame.update()
-        time.sleep(0.1 / float(speed_slider.get()))
+        time.sleep(0.05 / float(speed_slider.get()))
         move_count += 1
         
         if decaying:
-            epsilon = max(0.1, epsilon * 0.99)  
+            epsilon = max(0.001, epsilon * 0.99)  
             epsilon_entry.delete(0, tk.END) 
             epsilon_entry.insert(0, str(epsilon))
         
@@ -950,7 +957,7 @@ def epsilon_greedy(decaying = False):
             
             grid_frame.update()
             time.sleep(0.5)
-            current_state = (0, 0)
+            current_state = (2, 0)
             update_here_marker()
             grid_frame.update()
     
@@ -959,7 +966,7 @@ def epsilon_greedy(decaying = False):
 
 # # Main Controller
 
-# In[15]:
+# In[ ]:
 
 
 def main():
