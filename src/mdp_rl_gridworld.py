@@ -9,6 +9,7 @@
 import tkinter as tk
 import time
 import random
+from mdp.model import MDP
 
 # # Class Definitions
 
@@ -526,6 +527,18 @@ class RLAlgorithm:
                 'current_agent_state': getattr(self, 'current_state', None), 
                 'q_learn_active': isinstance(self, (QLearningAlgorithm, EpsilonGreedyAlgorithm))}
 
+    def _prepare_flat_display_data_from_v_and_q_dict(self, q_values_dict):
+        """Prepares V and Q display data from a Q-values dictionary (used in VI/PI)."""
+        v_display_tuples = []; q_display_quads = []
+        ordered_display_cells = [(0,0), (0,1), (0,2), (1,0), (1,2), (2,0), (2,1), (2,2), (2,3)]
+        for state_coord in ordered_display_cells:
+            v_score_str = f"{self.V.get(state_coord, 0.0):.2f}"; direction_str = self.policy.get(state_coord, "")
+            v_display_tuples.append((v_score_str, direction_str))
+            q_s_vals = q_values_dict.get(state_coord, {})
+            q_display_quads.append(( f"{q_s_vals.get('up', 0.0):.2f}", f"{q_s_vals.get('right', 0.0):.2f}",
+                                     f"{q_s_vals.get('down', 0.0):.2f}", f"{q_s_vals.get('left', 0.0):.2f}" ))
+        return v_display_tuples, q_display_quads
+
 class ValueIterationAlgorithm(RLAlgorithm):
     """Implements the Value Iteration algorithm."""
     def __init__(self, mdp_model, app_interface):
@@ -648,18 +661,6 @@ class PolicyIterationAlgorithm(RLAlgorithm):
             self.app.set_status_message(f"Policy iteration {status} after {self.iteration} iterations.")
             self.stop()
     
-    def _prepare_flat_display_data_from_v_and_q_dict(self, q_values_dict):
-        """Prepares V and Q display data from a Q-values dictionary (used in VI/PI)."""
-        v_display_tuples = []; q_display_quads = []
-        ordered_display_cells = [(0,0), (0,1), (0,2), (1,0), (1,2), (2,0), (2,1), (2,2), (2,3)]
-        for state_coord in ordered_display_cells:
-            v_score_str = f"{self.V.get(state_coord, 0.0):.2f}"; direction_str = self.policy.get(state_coord, "")
-            v_display_tuples.append((v_score_str, direction_str))
-            q_s_vals = q_values_dict.get(state_coord, {})
-            q_display_quads.append(( f"{q_s_vals.get('up', 0.0):.2f}", f"{q_s_vals.get('right', 0.0):.2f}",
-                                     f"{q_s_vals.get('down', 0.0):.2f}", f"{q_s_vals.get('left', 0.0):.2f}" ))
-        return v_display_tuples, q_display_quads
-
 class QLearningAlgorithm(RLAlgorithm):
     """Implements user-interactive Q-Learning."""
     def __init__(self, mdp_model, app_interface):
@@ -670,6 +671,10 @@ class QLearningAlgorithm(RLAlgorithm):
         for terminal_s in self.mdp.terminal_states: 
             if terminal_s in self.Q:
                 for a_term in self.mdp.actions: self.Q[terminal_s][a_term] = 0.0 
+
+    def start(self):
+        """Starts the Q-learning algorithm by calling run_algorithm()."""
+        self.run_algorithm()
 
     def _on_key(self, event):
         """Handles key press events for agent movement."""
@@ -785,4 +790,3 @@ def main():
 if __name__ == "__main__":
     main()
 
-[end of src/mdp_rl_gridworld.py]
